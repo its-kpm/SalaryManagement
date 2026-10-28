@@ -2,7 +2,7 @@
 
 Salary management for ACME's HR team and 10,000 employees across countries.
 
-**Status:** PostgreSQL schema and a reproducible 10,000-employee demo seed, verified module boundaries, and shared HTTP error handling implemented. The application starts locally and exposes a minimal health endpoint. Employee APIs, authentication, persistence, and the frontend are not implemented yet; this is not a deployed HR application.
+**Status:** The secured Spring Boot API now supports an authenticated HR session plus a database-backed employee directory and profiles over the PostgreSQL schema and reproducible 10,000-employee demo seed. The frontend, salary-change commands, reporting, imports, and deployment are not implemented yet; this is not a deployed HR application.
 
 ## Design documents
 
@@ -19,7 +19,7 @@ Spring Boot backend, PostgreSQL, and an Angular frontend (modern Angular is prop
 
 Use compatible, supported stable dependencies. Exact versions, build commands, and deployment instructions will be recorded when implemented.
 
-Next milestone: employee directory and profiles. Later commits add compensation, reporting, CSV transfer, observability, performance checks, and deployment.
+Next milestone: transactional, effective-dated salary changes and salary history. Later commits add reporting, CSV transfer, observability, performance checks, frontend, and deployment.
 
 ## Run the backend
 
@@ -57,7 +57,7 @@ Spring Modulith declares seven business modules plus a technical `platform` modu
 
 MVC errors return RFC 9457 Problem Details with safe messages and a server-generated `requestId` matching `X-Request-ID`. API responses use `Cache-Control: no-store`. Validation errors identify fields without returning rejected salary values. Business-specific errors and security-filter errors arrive with their respective features.
 
-The suite currently has 18 tests: 4 architecture checks, 9 HTTP error/response checks, 2 request-context cleanup checks, and 3 original startup/health checks. Test-only HTTP endpoints are outside the application scan and are not shipped.
+The suite includes module-boundary, HTTP contract, security-session, PostgreSQL integrity, deterministic seed, and employee-directory integration tests. Test-only HTTP endpoints are outside the application scan and are not shipped.
 
 ## Database schema
 
@@ -96,3 +96,7 @@ cd backend
 ```
 
 The default local profile allows HTTP only on loopback and sets the session cookie Secure flag to false. Nonlocal profiles default to Secure cookies and require HTTPS. First GET `/api/v1/auth/csrf` to obtain a token and session cookie. Send its `headerName: token` on login and other POST requests. GET `/api/v1/auth/csrf` again after login to refresh the token. Use the session cookie on protected routes, GET `/api/v1/auth/me` to inspect the user, and POST `/api/v1/auth/logout` with a CSRF token to end the session. The synthetic seed actor remains disabled and cannot log in.
+
+## Employee directory API
+
+After login, `GET /api/v1/employees` returns a bounded, zero-based page. It searches name, employee number, and email; filters by department, country, level, and employment status; and allowlists sort fields. SQL values are parameterized and employee ID is always the stable final sort key. `GET /api/v1/employees/{id}` returns profile data, current salary, and the employee version needed by later write operations. Salary amounts are JSON strings so browser clients do not lose decimal precision. See [API conventions](docs/api-conventions.md) for parameters and response behavior.

@@ -1,6 +1,6 @@
 # API conventions
 
-Status: authentication endpoints, session authorization, MVC error responses, request IDs, and API no-store headers are implemented. Employee/compensation/reporting/import endpoints below remain proposed. Prefix business endpoints with /api/v1. JSON requests/responses use camelCase; all endpoints require HR access except login, CSRF-token retrieval, and minimal health.
+Status: authentication, employee directory/profile reads, session authorization, MVC error responses, request IDs, and API no-store headers are implemented. Compensation/reporting/import endpoints below remain proposed. Prefix business endpoints with /api/v1. JSON requests/responses use camelCase; all endpoints require HR access except login, CSRF-token retrieval, and minimal health.
 
 ## Planned routes
 
@@ -26,6 +26,8 @@ Employee creation and supported profile updates initially occur through CSV; ded
 ## Pagination and filters
 
 Directory parameters: q, departmentId, countryCode, jobLevel, employmentStatus, page (zero-based), size (default 25, maximum 100), sort, direction. Reject invalid values. Allowlist sort fields and parameterize SQL; always add id as a stable tie-breaker. Return items, page, size, totalElements, totalPages. Whitespace-only search means no search.
+
+The implemented directory searches `fullName`, `employeeNumber`, and `email` case-insensitively, treating `%`, `_`, and `\` as literal user input rather than SQL wildcard syntax. Supported sort values are `fullName`, `employeeNumber`, `department`, `country`, `jobLevel`, and `currentSalary`; direction is `asc` or `desc`. Current salary may be null. Monetary amounts are serialized as decimal strings to preserve precision in JavaScript clients. Profile lookup returns 404 for an unknown UUID and includes the employee version for future optimistic writes.
 
 Reports accept departmentId, countryCode, jobLevel and rateSetId; they always describe active employees. An omitted rateSetId resolves to one configured default, returned explicitly in the response. Include asOfDate and reportingCurrency. Execute related aggregates in one consistent database snapshot so totals and counts agree during concurrent writes. No historical-report endpoint is implied.
 

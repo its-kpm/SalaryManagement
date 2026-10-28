@@ -54,6 +54,14 @@ This log records actual assistance and checks, not hypothetical future testing. 
 **Checks:** Java 25 compilation and formatting passed locally. CI performs the PostgreSQL-backed HTTP and schema suite after publication. Security behavior is judged from that run and corrected if required.
 **Limits:** This is one HR role and a first-party session flow. An enterprise identity provider and rate limiting are not part of the assessment release. Local provisioning never replaces a password for an existing email.
 
+## Commit 8 — Employee directory and profile
+
+**Instruction:** “Commit 8”, continuing the planned backend milestones.
+**AI contribution:** Implemented authenticated employee list and profile endpoints with Spring `JdbcClient`, server-side search and filters, allowlisted sorting, bounded pagination, stable ordering, current-compensation projection, and decimal-string money responses. Added full-HTTP PostgreSQL tests covering authentication, filter/sort/page behavior, literal wildcard search, profile lookup, safe not-found behavior, and invalid parameters.
+**Checks:** Java 25 formatting, compilation, test compilation, and executable packaging run locally. The full suite runs against a real PostgreSQL 18.6 service in CI after publication; any failure is corrected before the milestone is considered complete.
+**Design choices:** A focused read repository is used instead of loading 10,000 employees into memory. Dynamic SQL is limited to an internal sort-column allowlist and validated direction; all user values remain bound parameters. Employee ID is a deterministic tie-breaker. No distributed cache or search cluster is introduced because indexed relational reads are adequate for the stated scale and simpler to operate correctly.
+**Limits:** This milestone is read-only. Salary history and mutations, dedicated employee edits, reporting aggregates, CSV transfer, and performance/load evidence remain later work.
+
 ## Ongoing practice
 
 For each implementation milestone, append the actual prompt/task, generated or revised areas, checks executed, failures found, and resulting corrections. Never mark AI-generated code correct solely because it compiles; verify the business invariants with focused tests.

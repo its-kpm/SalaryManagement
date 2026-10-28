@@ -104,7 +104,7 @@ class HrAuthenticationIntegrationTests {
       assertThat(jdbc.queryForObject("SELECT count(*) FROM spring_session", Integer.class))
           .isPositive();
       assertThat(send(client, "GET", "/api/v1/auth/me", null, null).statusCode()).isEqualTo(200);
-      assertThat(send(client, "GET", "/api/v1/employees", null, null).statusCode()).isEqualTo(404);
+      assertThat(send(client, "GET", "/api/v1/employees", null, null).statusCode()).isEqualTo(200);
       var refreshed = JSON.readTree(send(client, "GET", "/api/v1/auth/csrf", null, null).body());
       assertThat(
               send(
