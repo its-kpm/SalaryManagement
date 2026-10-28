@@ -39,9 +39,9 @@ class EmployeeDirectoryRepository {
     var parameters = new java.util.LinkedHashMap<String, Object>();
     if (query.search() != null) {
       where.append(
-          " AND (lower(e.full_name) LIKE :search ESCAPE '\\\\'"
-              + " OR lower(e.employee_number) LIKE :search ESCAPE '\\\\'"
-              + " OR lower(e.email) LIKE :search ESCAPE '\\\\')");
+          " AND (lower(e.full_name) LIKE :search ESCAPE '\\'"
+              + " OR lower(e.employee_number) LIKE :search ESCAPE '\\'"
+              + " OR lower(e.email) LIKE :search ESCAPE '\\')");
       parameters.put(
           "search", "%" + escapeLike(query.search().toLowerCase(java.util.Locale.ROOT)) + "%");
     }
