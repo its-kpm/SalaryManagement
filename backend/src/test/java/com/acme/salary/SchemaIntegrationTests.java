@@ -55,7 +55,7 @@ class SchemaIntegrationTests {
     assertThat(
             jdbc.queryForObject(
                 "SELECT count(*) FROM flyway_schema_history WHERE success", Integer.class))
-        .isEqualTo(1);
+        .isEqualTo(2);
     assertThat(
             jdbc.queryForObject(
                 "SELECT annual_base_amount FROM current_employee_compensation WHERE employee_id = ?",

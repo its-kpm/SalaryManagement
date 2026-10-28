@@ -31,7 +31,8 @@ class HrUserRepository {
                         true,
                         true,
                         java.util.List.of(
-                            new SimpleGrantedAuthority("ROLE_" + rs.getString("role"))))))
+                            new SimpleGrantedAuthority("ROLE_" + rs.getString("role"))))),
+            email)
         .stream()
         .findFirst()
         .orElseThrow(() -> new UsernameNotFoundException("Unknown user"));
