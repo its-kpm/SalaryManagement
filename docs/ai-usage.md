@@ -40,6 +40,13 @@ This log records actual assistance and checks, not hypothetical future testing. 
 **Verification:** Java compile/package and formatting completed locally; full database integration runs in GitHub Actions with a real PostgreSQL 18.6 service. Local Docker and PostgreSQL are unavailable in this workspace, so no local database test result is claimed.
 **Limit:** Spring Session tables, seed data, business use cases, and database permission separation are later milestones. Database constraints do not independently enforce all cross-table business rules.
 
+## Commit 6 — Reproducible synthetic seed
+
+**Instruction:** “yaa do commit 6”, the agreed 10,000-employee seed milestone.
+**AI contribution:** Drafted an explicit, transaction-wrapped SQL seed, stable identifiers, multi-country salary histories, a disabled attribution actor, a fixed labeled reporting rate set, and PostgreSQL integration tests for counts, completeness, and rerun preservation.
+**Checks:** Full verification against the CI PostgreSQL service is performed after publishing; local compile/format checks run before publication. The script is deliberately excluded from Flyway and requires an explicit demo command.
+**Limits:** Names and salary scales are synthetic. Exchange rates are illustrative, not suitable for financial decisions. The script is for isolated demonstrations, never production data.
+
 ## Ongoing practice
 
 For each implementation milestone, append the actual prompt/task, generated or revised areas, checks executed, failures found, and resulting corrections. Never mark AI-generated code correct solely because it compiles; verify the business invariants with focused tests.

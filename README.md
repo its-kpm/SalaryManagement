@@ -2,7 +2,7 @@
 
 Salary management for ACME's HR team and 10,000 employees across countries.
 
-**Status:** PostgreSQL schema and migration, verified module boundaries, and shared HTTP error handling implemented. The application starts locally and exposes a minimal health endpoint. Employee APIs, authentication, persistence, and the frontend are not implemented yet; this is not a deployed HR application.
+**Status:** PostgreSQL schema and a reproducible 10,000-employee demo seed, verified module boundaries, and shared HTTP error handling implemented. The application starts locally and exposes a minimal health endpoint. Employee APIs, authentication, persistence, and the frontend are not implemented yet; this is not a deployed HR application.
 
 ## Design documents
 
@@ -19,7 +19,7 @@ Spring Boot backend, PostgreSQL, and an Angular frontend (modern Angular is prop
 
 Use compatible, supported stable dependencies. Exact versions, build commands, and deployment instructions will be recorded when implemented.
 
-Next milestone: deterministic 10,000-employee demo seed. Later commits add authentication, employee workflows, compensation, reporting, CSV transfer, observability, performance checks, and deployment.
+Next milestone: HR authentication and session security. Later commits add employee workflows, compensation, reporting, CSV transfer, observability, performance checks, and deployment.
 
 ## Run the backend
 
@@ -72,4 +72,14 @@ docker compose up -d postgres
 cd backend && ./mvnw clean verify
 ```
 
-CI starts PostgreSQL 18.6 as a service and runs the same full verification. Local database and credentials are development-only; no demo HR account or employee rows are created in this commit. The seed comes next.
+CI starts PostgreSQL 18.6 as a service and runs the same full verification. Local database and credentials are development-only; no demo HR login is created automatically. Seed rows are added only when the script is explicitly run.
+
+## Synthetic demonstration data
+
+After Flyway has created the schema, run the SQL script from the repository root. It generates exactly 10,000 synthetic employees and 12,500 effective-dated salary periods across four countries, four currencies, five departments, and five levels. One in twenty employees is inactive; one in four has a historical salary change. The fixed USD reporting rate set is labeled as synthetic, dated 2026-01-01, and is not a live financial rate.
+
+```bash
+docker compose exec -T postgres psql -v ON_ERROR_STOP=1 -U salary_app -d salary_management < scripts/seed.sql
+```
+
+The script commits atomically and can be rerun. Deterministic identifiers and conflict handling preserve later edits instead of rewriting salaries. It creates a disabled seed actor solely to attribute the synthetic rows; authentication and usable HR accounts arrive in the next commit. Run this script only against a disposable demo database.

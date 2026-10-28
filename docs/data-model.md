@@ -1,6 +1,6 @@
 # Data model and invariants
 
-Status: initial PostgreSQL schema and executable constraints implemented in Flyway V1. Seed data, domain use cases, and Spring Session tables remain future work.
+Status: initial PostgreSQL schema and executable constraints implemented in Flyway V1. Synthetic seed data is available as an explicit script. Domain use cases and Spring Session tables remain future work.
 
 ## Entities
 
@@ -64,3 +64,7 @@ Unique keys support employee-number/email lookups. Index salary employee/date ac
 ## Migration implementation notes
 
 V1 creates all application tables and a read-only current compensation view. The view evaluates today's date in UTC. Database CHECK, UNIQUE, FK, partial unique, and GiST exclusion constraints protect important record-level rules. A future salary-change use case will enforce the employee aggregate version and atomically write audit entries; these cross-table invariants are not implemented by V1 alone. Currency-specific input precision and historical rate immutability also remain application responsibilities.
+
+## Synthetic seed
+
+`scripts/seed.sql` is outside Flyway so deploying or restarting the service cannot silently create HR accounts or employee data. It runs in one transaction and uses stable identifiers derived from a dedicated `acme-demo-` namespace. On rerun, existing seeded rows are not overwritten. The actor has `enabled=false` and no usable credential. Salaries and exchange rates are deterministic, synthetic examples; do not treat them as market benchmarks.
