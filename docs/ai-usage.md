@@ -25,6 +25,14 @@ This log records actual assistance and checks, not hypothetical future testing. 
 **Failures and corrections:** Initial Maven access needed workspace proxy settings and the existing host trust store, both kept outside the repository. The first HTTP test expected an exact health JSON string; Spring Boot included probe group names, so the test now verifies UP and absence of sensitive component/details fields structurally. Configured the Mockito Java agent explicitly instead of relying on dynamic attachment on Java 25. Spotless applied formatting before the final verification.
 **Limits:** This milestone has no HR business endpoints, database, authentication, frontend, or deployment. Windows wrapper execution has not been tested in this Linux workspace. A Spotless dependency emits a Java Unsafe deprecation warning; formatting still passes, and no application code uses Unsafe.
 
+## Commit 4 — Module boundaries and error contract
+
+**Instruction:** “yaa do commit 4”, the module-verification and shared-error-contract milestone.
+**AI contribution:** Added the Modulith BOM/API/test-core dependencies; seven business boundary declarations and a technical platform module; request correlation and safe Problem Details handling; positive/negative architecture checks, real-HTTP error tests, and MDC cleanup tests. Updated the implemented-versus-planned documentation.
+**Checks:** Clean Java 25 verification passed all 18 tests, including intentionally invalid fixture rejection. Formatting and packaging pass. Reviewed documentation, module ownership, safe-message behavior, and absence of test fixtures in the executable artifact; remote CI is checked after publication.
+**Failures and corrections:** The initial filter name collided with Spring's requestContextFilter bean; renamed it RequestCorrelationFilter without enabling bean overrides. Modulith excludes test classes by default, so isolated negative fixture scans explicitly include their test classpath while production scans keep the default. Maven Central exposed stable 2.1.2 beyond the reference site's 2.1.1 label; pinned and built 2.1.2. No business contracts or fake service implementations were invented to fill empty modules.
+**Limits:** MVC error handling is not a substitute for future Spring Security exception handlers. Database integrity and business-rule tests remain for later commits. Logging only exception type and request ID intentionally limits diagnostic detail to avoid leaking exception contents.
+
 ## Ongoing practice
 
 For each implementation milestone, append the actual prompt/task, generated or revised areas, checks executed, failures found, and resulting corrections. Never mark AI-generated code correct solely because it compiles; verify the business invariants with focused tests.

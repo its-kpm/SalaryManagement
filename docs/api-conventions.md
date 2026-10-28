@@ -1,6 +1,6 @@
 # API conventions
 
-Status: proposed contract; no endpoints are implemented yet. Prefix business endpoints with /api/v1. JSON requests/responses use camelCase; all endpoints require HR access except login, CSRF-token retrieval, and minimal health.
+Status: shared MVC error responses, request IDs, and API no-store headers are implemented. Business endpoints below remain proposed and are not implemented yet. Prefix business endpoints with /api/v1. JSON requests/responses use camelCase; all endpoints require HR access except login, CSRF-token retrieval, and minimal health.
 
 ## Planned routes
 
@@ -60,6 +60,14 @@ Use RFC 9457 application/problem+json with type, title, status, detail, instance
 | 500 | Unexpected failure with safe message and correlation ID |
 
 An inspectable CSV validation result can return 200 with status INVALID and row errors; it performs no employee writes and cannot be applied. Apply is transactionally atomic, revalidates preview expiry/data, and returns 409 for expired or invalidated previews. Validation requests may create separate previews; only application of an individual preview is idempotent.
+
+## Implemented error foundation
+
+The platform module handles MVC input/validation errors, missing routes, unsupported methods/media types, and unexpected controller failures. Responses use `about:blank`, the standard HTTP title, status, safe detail, request path without query parameters, code, and requestId. `X-Request-ID` carries the same server-generated UUID; incoming IDs are not trusted. Field errors use field, code=INVALID_VALUE, and a generic message, avoiding validator-message interpolation of submitted values.
+
+Current codes: VALIDATION_FAILED, INVALID_REQUEST, RESOURCE_NOT_FOUND, METHOD_NOT_ALLOWED, NOT_ACCEPTABLE, PAYLOAD_TOO_LARGE, UNSUPPORTED_MEDIA_TYPE, and INTERNAL_ERROR; other framework statuses receive REQUEST_FAILED. HTTP 405 responses retain Allow. Unexpected failures log only the correlation ID and exception type, not the exception message or stack trace; this trades diagnostic detail for protection against sensitive values in exceptions.
+
+Domain conflict/reporting errors and authentication/CSRF errors will be implemented and tested with those features. Advice handles MVC exceptions, not arbitrary servlet-container or future security-filter failures. Error responses and `/api/` responses have no-store headers. MDC request context is cleaned up even when downstream processing fails.
 
 ## Browser and export behavior
 

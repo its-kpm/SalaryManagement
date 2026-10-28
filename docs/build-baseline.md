@@ -6,13 +6,14 @@
 |---|---|
 | Java | 25 LTS; compiler and Maven Enforcer require Java 25 |
 | Spring Boot | 4.1.2 parent and dependency management |
+| Spring Modulith | 2.1.2 BOM; API at compile scope and architecture core at test scope |
 | Maven | 3.9.16 through Apache Maven Wrapper 3.3.4 |
 | Spotless Maven plugin | 3.10.4; Google Java Format default supplied by this pinned plugin |
 | Maven Enforcer | 3.6.2 |
 | CI JDK | Eclipse Temurin 25; patch updates remain enabled |
 | CI runner | ubuntu-24.04 |
 
-Spring MVC, validation, Actuator, and test dependencies inherit the Spring Boot dependency management. Do not independently override their transitive versions without a documented compatibility reason. Modulith, persistence, Flyway, and Security dependencies will be resolved when their features are introduced.
+Spring MVC, validation, Actuator, and test dependencies inherit the Spring Boot dependency management. Do not independently override their transitive versions without a documented compatibility reason. Persistence, Flyway, and Security dependencies will be resolved when their features are introduced. Modulith core and its ArchUnit dependency remain test-scoped; runtime carries only the module annotation API.
 
 ## Official references checked during bootstrap
 
@@ -39,3 +40,7 @@ Workspace-specific proxy settings and the host trust store are supplied outside 
 Validated with Temurin 25.0.5 and Maven 3.9.16: clean verify succeeded, all three HTTP smoke tests passed, and the repackaged executable JAR returned healthy status on a random local port. XML/YAML parsing and git whitespace checks passed. Remote CI results are available in GitHub Actions; this document does not assume a run outcome before publication.
 
 Mockito is configured as an explicit test JVM agent for Java 25. Spotless's formatter integration emits an upstream Unsafe deprecation warning; it is not suppressed and does not prevent verification.
+
+## Commit 4 validation
+
+The 2.1.2 stable Modulith release was resolved from [Maven Central metadata](https://repo.maven.apache.org/maven2/org/springframework/modulith/spring-modulith-bom/maven-metadata.xml), within the Boot 4.1-aligned 2.1 release family. [Official verification documentation](https://docs.spring.io/spring-modulith/reference/verification.html) describes the enforced cycle, encapsulation, and allowlist rules. The clean Java 25/Boot 4.1.2 build passes 18 tests. Negative architecture fixtures explicitly include test classes in the import scope; the production architecture scan continues to exclude test classes.

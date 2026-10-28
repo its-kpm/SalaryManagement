@@ -1,6 +1,6 @@
 # Backend architecture
 
-Status: design baseline for implementation. Product scope is defined in [requirements](requirements.md); decisions and alternatives are in [decisions](decisions.md).
+Status: module boundaries and shared MVC infrastructure are implemented; business workflows, database, and authentication below remain the design baseline. Product scope is defined in [requirements](requirements.md); decisions and alternatives are in [decisions](decisions.md).
 
 ## Runtime topology
 
@@ -31,6 +31,7 @@ Packages beneath com.acme.salary are Spring Modulith application modules. Expose
 
 | Module | Owns | May depend on |
 |---|---|---|
+| platform | Internal MVC error advice and request correlation filter; no business rules | No application modules |
 | identity | HR accounts, authentication, security configuration | No business modules |
 | reference | Departments, countries, currencies, immutable FX rate sets | No business modules |
 | audit | Append-only business audit records and a synchronous append API | No business modules |
@@ -38,6 +39,8 @@ Packages beneath com.acme.salary are Spring Modulith application modules. Expose
 | compensation | Salary periods, salary-change use case, compensation queries | employee, reference, audit |
 | reporting | Read-only report projections and queries | employee and compensation published read contracts, reference |
 | transfer | CSV previews, validated rows, import status, export orchestration | employee, compensation, reference, audit |
+
+The technical platform module is auto-discovered by Spring, exposes no business API, and is not an allowed dependency of business modules. Business modules currently contain boundary declarations only; contracts are introduced alongside actual use cases. Architecture tests assert all eight modules are discovered and use isolated negative fixtures to prove forbidden edges, internal access, and cycles are rejected.
 
 Controllers derive a trusted actor from the authenticated principal and pass an actor ID to use cases; modules must not depend on identity internals. Common configuration must not become a shared business-logic module.
 
