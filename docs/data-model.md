@@ -1,6 +1,6 @@
 # Data model and invariants
 
-Status: logical design; migrations and executable constraints arrive in later commits.
+Status: initial PostgreSQL schema and executable constraints implemented in Flyway V1. Seed data, domain use cases, and Spring Session tables remain future work.
 
 ## Entities
 
@@ -16,7 +16,7 @@ Status: logical design; migrations and executable constraints arrive in later co
 | exchange_rates / reference | rate_set_id + source_currency composite key; positive NUMERIC(24,12) rate |
 | audit_events / audit | UUID id; actor_id; entity_type; entity_id; action; before_values/after_values JSONB; reason; occurred_at; request_id; optional import_id |
 | imports / transfer | UUID id; owner_id; content_hash; normalized preview; expected employee versions; VALIDATED/INVALID/APPLIED status; errors; created_at; expires_at; applied_at; receipt |
-| Spring Session tables / identity | Framework-managed session metadata and attributes; migrated using the schema for the pinned dependency |
+| Spring Session tables / identity | Planned with authentication in Commit 7; absent from V1 |
 
 Use TIMESTAMPTZ for instants, DATE for salary business dates, and UTC for the application's business clock. UUIDs are server-generated identifiers, not authorization controls. Foreign keys enforce referenced identities. No hard-delete workflow in the initial release.
 
@@ -37,7 +37,7 @@ An employee is created with an initial salary atomically; active employees must 
 
 ## Temporal compensation
 
-Periods use [effective_from, effective_to); NULL end means unbounded. Require end > start when present. Add a unique (employee_id, effective_from), a partial unique index for one open period, and a PostgreSQL GiST exclusion constraint on employee_id and daterange to reject overlaps (requires btree_gist). Check extension support before deployment.
+Periods use [effective_from, effective_to); NULL end means unbounded. Require end > start when present. Add a unique (employee_id, effective_from), a partial unique index for one open period, and a PostgreSQL GiST exclusion constraint on employee_id and daterange to reject overlaps (requires btree_gist). The migration installs the trusted btree_gist extension; deployment requires permission to create it or prior provisioning.
 
 Append-only changes close the previous period and add a new one in a transaction. Do not edit an older period's amount. A second change with the same effective date is rejected in this release; same-day corrections require a future product decision. Backdated append changes are permitted only after the latest start and on/before today.
 
@@ -60,3 +60,7 @@ Preview data is sensitive and accessible only to its initiating HR user. Enforce
 ## Initial query support
 
 Unique keys support employee-number/email lookups. Index salary employee/date access and audit entity/time access. Start with indexes for demonstrated department/country/status filters; confirm composite indexes and substring-search strategy with EXPLAIN ANALYZE on seed data. Ordinary B-tree indexes do not make arbitrary case-insensitive contains searches efficient.
+
+## Migration implementation notes
+
+V1 creates all application tables and a read-only current compensation view. The view evaluates today's date in UTC. Database CHECK, UNIQUE, FK, partial unique, and GiST exclusion constraints protect important record-level rules. A future salary-change use case will enforce the employee aggregate version and atomically write audit entries; these cross-table invariants are not implemented by V1 alone. Currency-specific input precision and historical rate immutability also remain application responsibilities.

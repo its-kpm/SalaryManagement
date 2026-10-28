@@ -33,6 +33,13 @@ This log records actual assistance and checks, not hypothetical future testing. 
 **Failures and corrections:** The initial filter name collided with Spring's requestContextFilter bean; renamed it RequestCorrelationFilter without enabling bean overrides. Modulith excludes test classes by default, so isolated negative fixture scans explicitly include their test classpath while production scans keep the default. Maven Central exposed stable 2.1.2 beyond the reference site's 2.1.1 label; pinned and built 2.1.2. No business contracts or fake service implementations were invented to fill empty modules.
 **Limits:** MVC error handling is not a substitute for future Spring Security exception handlers. Database integrity and business-rule tests remain for later commits. Logging only exception type and request ID intentionally limits diagnostic detail to avoid leaking exception contents.
 
+## Commit 5 — PostgreSQL schema and migration
+
+**Instruction:** Add PostgreSQL schema and Flyway migration as the next incremental commit.
+**AI contribution:** Drafted V1 schema, Compose service, Boot database configuration, CI PostgreSQL service, and direct JDBC integration tests. Reviewed temporal exclusion semantics and changed the current compensation view to an explicit UTC date.
+**Verification:** Java compile/package and formatting completed locally; full database integration runs in GitHub Actions with a real PostgreSQL 18.6 service. Local Docker and PostgreSQL are unavailable in this workspace, so no local database test result is claimed.
+**Limit:** Spring Session tables, seed data, business use cases, and database permission separation are later milestones. Database constraints do not independently enforce all cross-table business rules.
+
 ## Ongoing practice
 
 For each implementation milestone, append the actual prompt/task, generated or revised areas, checks executed, failures found, and resulting corrections. Never mark AI-generated code correct solely because it compiles; verify the business invariants with focused tests.
