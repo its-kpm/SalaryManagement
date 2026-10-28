@@ -1,6 +1,6 @@
 # Data model and invariants
 
-Status: initial PostgreSQL schema and executable constraints implemented in Flyway V1. Synthetic seed data is available as an explicit script. Domain use cases and Spring Session tables remain future work.
+Status: initial PostgreSQL schema and executable constraints implemented in Flyway V1. Synthetic seed data is available as an explicit script. Domain use cases remain future work; Spring Session tables are installed by Flyway V2.
 
 ## Entities
 

@@ -1,3 +1,7 @@
 # Bootstrap is local-only until authentication and deployment are implemented.
 server:
   address: 127.0.0.1
+  servlet:
+    session:
+      cookie:
+        secure: false

@@ -47,6 +47,13 @@ This log records actual assistance and checks, not hypothetical future testing. 
 **Checks:** Full verification against the CI PostgreSQL service is performed after publishing; local compile/format checks run before publication. The script is deliberately excluded from Flyway and requires an explicit demo command.
 **Limits:** Names and salary scales are synthetic. Exchange rates are illustrative, not suitable for financial decisions. The script is for isolated demonstrations, never production data.
 
+## Commit 7 — HR authentication
+
+**Instruction:** “yaa do commit 7”, the planned authenticated HR session milestone.
+**AI contribution:** Added Spring Security configuration, JDBC-backed sessions through Flyway V2, password-hash lookup, explicit local-only HR provisioning, login/me/logout/CSRF endpoints, and an HTTP integration test. Kept test-only probe routes isolated with a test-specific security chain.
+**Checks:** Java 25 compilation and formatting passed locally. CI performs the PostgreSQL-backed HTTP and schema suite after publication. Security behavior is judged from that run and corrected if required.
+**Limits:** This is one HR role and a first-party session flow. An enterprise identity provider and rate limiting are not part of the assessment release. Local provisioning never replaces a password for an existing email.
+
 ## Ongoing practice
 
 For each implementation milestone, append the actual prompt/task, generated or revised areas, checks executed, failures found, and resulting corrections. Never mark AI-generated code correct solely because it compiles; verify the business invariants with focused tests.

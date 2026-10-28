@@ -31,14 +31,14 @@ class SalaryManagementApplicationTests {
 
   @Test
   void environmentEndpointIsNotExposed() throws Exception {
-    assertThat(get("/actuator/env").statusCode()).isEqualTo(404);
+    assertThat(get("/actuator/env").statusCode()).isEqualTo(401);
   }
 
   @Test
   void unknownApiDoesNotExposeInternalErrorDetails() throws Exception {
     var response = get("/api/v1/not-implemented");
 
-    assertThat(response.statusCode()).isEqualTo(404);
+    assertThat(response.statusCode()).isEqualTo(401);
     assertThat(response.body()).doesNotContain("\"trace\"", "\"exception\"", "\"message\"");
   }
 

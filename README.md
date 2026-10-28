@@ -19,7 +19,7 @@ Spring Boot backend, PostgreSQL, and an Angular frontend (modern Angular is prop
 
 Use compatible, supported stable dependencies. Exact versions, build commands, and deployment instructions will be recorded when implemented.
 
-Next milestone: HR authentication and session security. Later commits add employee workflows, compensation, reporting, CSV transfer, observability, performance checks, and deployment.
+Next milestone: employee directory and profiles. Later commits add compensation, reporting, CSV transfer, observability, performance checks, and deployment.
 
 ## Run the backend
 
@@ -83,3 +83,16 @@ docker compose exec -T postgres psql -v ON_ERROR_STOP=1 -U salary_app -d salary_
 ```
 
 The script commits atomically and can be rerun. Deterministic identifiers and conflict handling preserve later edits instead of rewriting salaries. It creates a disabled seed actor solely to attribute the synthetic rows; authentication and usable HR accounts arrive in the next commit. Run this script only against a disposable demo database.
+
+## Local HR login
+
+Start the backend with an explicit local demo account after the database is migrated. Never commit a credential. The account is created only if its email does not already exist; restarting with another password will not reset it.
+
+```bash
+export DEMO_HR_EMAIL='hr@demo.invalid'
+export DEMO_HR_PASSWORD='choose-a-unique-password-at-least-12-chars'
+cd backend
+./mvnw spring-boot:run -Dspring-boot.run.arguments=--demo.hr.enabled=true
+```
+
+The default local profile allows HTTP only on loopback and sets the session cookie Secure flag to false. Nonlocal profiles default to Secure cookies and require HTTPS. First GET `/api/v1/auth/csrf` to obtain a token and session cookie. Send its `headerName: token` on login and other POST requests. GET `/api/v1/auth/csrf` again after login to refresh the token. Use the session cookie on protected routes, GET `/api/v1/auth/me` to inspect the user, and POST `/api/v1/auth/logout` with a CSRF token to end the session. The synthetic seed actor remains disabled and cannot log in.

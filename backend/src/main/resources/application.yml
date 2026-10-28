@@ -10,11 +10,22 @@ spring:
   flyway:
     enabled: true
     validate-on-migrate: true
+  session:
+    store-type: jdbc
+    timeout: 30m
+    jdbc:
+      initialize-schema: never
   lifecycle:
     timeout-per-shutdown-phase: 20s
 
 server:
   port: ${PORT:8080}
+  servlet:
+    session:
+      cookie:
+        http-only: true
+        same-site: lax
+        secure: true
   shutdown: graceful
   error:
     include-message: never

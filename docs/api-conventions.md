@@ -1,6 +1,6 @@
 # API conventions
 
-Status: shared MVC error responses, request IDs, and API no-store headers are implemented. Business endpoints below remain proposed and are not implemented yet. Prefix business endpoints with /api/v1. JSON requests/responses use camelCase; all endpoints require HR access except login, CSRF-token retrieval, and minimal health.
+Status: authentication endpoints, session authorization, MVC error responses, request IDs, and API no-store headers are implemented. Employee/compensation/reporting/import endpoints below remain proposed. Prefix business endpoints with /api/v1. JSON requests/responses use camelCase; all endpoints require HR access except login, CSRF-token retrieval, and minimal health.
 
 ## Planned routes
 
@@ -74,3 +74,9 @@ Domain conflict/reporting errors and authentication/CSRF errors will be implemen
 Use same-origin cookies and CSRF headers; do not enable wildcard credentialed CORS. Send Cache-Control: no-store on sensitive API responses. Keep session cookies HttpOnly; the CSRF token is separately available to the frontend.
 
 CSV export uses proper quoting and UTF-8; neutralize formula-leading untrusted text cells, including dangerous prefixes after whitespace/control characters. Export only authorized fields and impose an explicit maximum matching the initial 10,000-row scope. Return an actionable error if limits are exceeded.
+
+## Authentication implemented in Commit 7
+
+Use a same-origin browser client. Obtain `GET /api/v1/auth/csrf` before login; keep the returned session cookie and send the returned token under its `headerName` for POST login and logout. Refresh the CSRF token after login. `POST /api/v1/auth/login` accepts JSON `email` and `password`, responds with `id`, `email`, `role`, and changes the session ID. `/auth/me` needs an HR session. `POST /auth/logout` invalidates it. An unauthenticated API request receives 401; no authorization data comes from the client. Login failures use a generic 401; disabled accounts cannot log in. The application does not ship credentials. Nonlocal session cookies default to HttpOnly, SameSite=Lax, Secure.
+
+Spring Security generates its own 401/403 JSON with a server request ID. Remaining MVC errors use the shared Problem Details advice. Rate limiting and enterprise SSO are deployment follow-ups; the demo is not exposed publicly yet.

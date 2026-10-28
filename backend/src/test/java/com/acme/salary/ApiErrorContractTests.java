@@ -3,6 +3,7 @@ package com.acme.salary;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.acme.webfixtures.ProbeController;
+import com.acme.webfixtures.ProbeSecurityConfiguration;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -19,7 +20,7 @@ import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.json.JsonMapper;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@Import(ProbeController.class)
+@Import({ProbeController.class, ProbeSecurityConfiguration.class})
 class ApiErrorContractTests {
   @LocalServerPort private int port;
 

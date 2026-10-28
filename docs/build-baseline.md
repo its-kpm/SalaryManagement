@@ -50,3 +50,7 @@ The 2.1.2 stable Modulith release was resolved from [Maven Central metadata](htt
 ## Commit 5 database gate
 
 The schema uses PostgreSQL 18.6, Flyway with the PostgreSQL database plugin, and Spring JDBC. GitHub Actions starts an isolated PostgreSQL service. Schema integration tests exercise migration, current salary view, overlaps, duplicate open periods, monetary/date checks, unique employee numbers, and rate checks. A local Java compile/package check does not execute database tests unless PostgreSQL is running; CI performs the full database verification.
+
+## Commit 7 security baseline
+
+Spring Security and Spring Session JDBC versions come from Boot 4.1.2. Flyway V2 contains the PostgreSQL schema bundled with the managed Spring Session JDBC 4.1.1 dependency, with automatic session DDL disabled. The local profile is loopback HTTP with a non-Secure cookie for development; other profiles default to a Secure cookie. No demo HR user is created unless `--demo.hr.enabled=true` and email/password environment variables are supplied.
