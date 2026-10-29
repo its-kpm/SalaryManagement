@@ -1,6 +1,6 @@
 # API conventions
 
-Status: authentication, employee directory/profile reads, salary history/changes, compensation reporting, session authorization, MVC error responses, request IDs, and API no-store headers are implemented. Import endpoints below remain proposed. Prefix business endpoints with /api/v1. JSON requests/responses use camelCase; all endpoints require HR access except login, CSRF-token retrieval, and minimal health.
+Status: authentication, employee and salary operations, compensation reporting, CSV validation/previews, session authorization, MVC error responses, request IDs, and API no-store headers are implemented. Import application and export remain proposed. Prefix business endpoints with /api/v1. JSON requests/responses use camelCase; all endpoints require HR access except login, CSRF-token retrieval, and minimal health.
 
 ## Planned routes
 
@@ -21,7 +21,11 @@ Status: authentication, employee directory/profile reads, salary history/changes
 | POST | /api/v1/imports/{id}/apply | Apply stored validated preview; repeated success returns same receipt |
 | GET | /api/v1/employees/export | CSV for matching filters, not just the current page |
 
-Employee creation and supported profile updates initially occur through CSV; dedicated employee editing endpoints are outside this first contract. Imports include employeeNumber, fullName, email, department, countryCode, jobTitle, jobLevel, employmentStatus, annualBaseAmount, currencyCode, effectiveFrom, and reason. Exact template and field limits will be frozen with importer tests.
+Employee creation and supported profile updates initially occur through CSV; dedicated employee editing endpoints are outside this first contract. The implemented template header, in exact order, is `employeeNumber,fullName,email,department,countryCode,jobTitle,jobLevel,employmentStatus,annualBaseAmount,currencyCode,effectiveFrom,reason`.
+
+`POST /api/v1/imports/validate` accepts one multipart `file` with a `.csv` name. The exact service limit is 10 MiB and 10,000 data rows; servlet multipart limits are slightly higher so the application can return its stable 413 code. Parsing uses strict UTF-8 and RFC 4180 quoting, including commas/newlines inside quoted fields. Validation checks required fields and lengths, email/date/status/amount formats, currency precision, reference data, existing email conflicts, existing salary dates, and duplicate employee numbers/emails within the file.
+
+Every request persists a 24-hour preview owned by the authenticated HR user and bound to the complete file's SHA-256 hash. A valid preview stores normalized rows, generated IDs for creates, and expected employee versions for updates. An invalid preview stores sorted row/field/code/message errors but no staged rows. Both return 200 with `VALIDATED` or `INVALID`; neither changes employee or salary records. Atomic apply remains a separate later command.
 
 ## Pagination and filters
 
@@ -73,9 +77,9 @@ An inspectable CSV validation result can return 200 with status INVALID and row 
 
 The platform module handles MVC input/validation errors, missing routes, unsupported methods/media types, and unexpected controller failures. Responses use `about:blank`, the standard HTTP title, status, safe detail, request path without query parameters, code, and requestId. `X-Request-ID` carries the same server-generated UUID; incoming IDs are not trusted. Field errors use field, code=INVALID_VALUE, and a generic message, avoiding validator-message interpolation of submitted values.
 
-Current codes include VALIDATION_FAILED, INVALID_REQUEST, RESOURCE_NOT_FOUND, METHOD_NOT_ALLOWED, NOT_ACCEPTABLE, PAYLOAD_TOO_LARGE, UNSUPPORTED_MEDIA_TYPE, INTERNAL_ERROR, employee/salary conflict codes, RATE_SET_NOT_FOUND, INVALID_REPORT_FILTER, INVALID_REPORT_GROUPING, and REPORT_INCOMPLETE; other framework statuses receive REQUEST_FAILED. HTTP 405 responses retain Allow. Unexpected failures log only the correlation ID and exception type, not the exception message or stack trace; this trades diagnostic detail for protection against sensitive values in exceptions.
+Current codes include the shared validation/security codes, employee/salary conflict codes, reporting codes, IMPORT_FILE_TOO_LARGE, UNSUPPORTED_IMPORT_FILE, and IMPORT_READ_FAILED. Inspectable CSV row errors use stable codes inside the preview rather than failing the HTTP request. HTTP 405 responses retain Allow. Unexpected failures log only the correlation ID and exception type, not the exception message or stack trace; this trades diagnostic detail for protection against sensitive values in exceptions.
 
-Salary domain errors preserve stable codes while the shared advice replaces details with status-level safe messages, preventing submitted compensation values from appearing in error responses. Reporting errors remain future work. Advice handles MVC exceptions, not arbitrary servlet-container or security-filter failures. Error responses and `/api/` responses have no-store headers. MDC request context is cleaned up even when downstream processing fails.
+Domain errors preserve stable codes while the shared advice replaces details with status-level safe messages, preventing submitted compensation values from appearing in error responses. Advice handles MVC exceptions, not arbitrary servlet-container or security-filter failures. Error responses and `/api/` responses have no-store headers. MDC request context is cleaned up even when downstream processing fails.
 
 ## Browser and export behavior
 

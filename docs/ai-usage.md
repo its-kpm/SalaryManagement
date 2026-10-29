@@ -78,6 +78,14 @@ This log records actual assistance and checks, not hypothetical future testing. 
 **Design choices:** Reporting runs in a repeatable-read read-only transaction. It refuses partial results when salary or FX data is absent. SQL `NUMERIC` values remain exact through conversion and middle-value median calculation; rounding occurs only at the API boundary according to the reporting currency.
 **Limits:** Rates are curated reference data, not live market FX. Reports cover current active compensation, not historical organization structure or pay-equity causality. Performance evidence on the 10,000-row seed remains a later milestone.
 
+## Commit 11 — CSV validation and import previews
+
+**Instruction:** Add file limits, CSV parsing, row validation, duplicate detection, and persisted previews bound to the user/file; invalid files must return useful row errors without employee writes.
+**AI contribution:** Added strict UTF-8 RFC 4180 parsing with Apache Commons CSV 1.14.1, exact byte/row limits, SHA-256 hashing, a frozen 12-column template, bulk employee/reference snapshots, normalized create/update previews, optimistic expected versions, within-file duplicate detection, safe sorted row errors, authenticated ownership, and 24-hour persistence. Parsing/hashing occurs before the repeatable-read validation transaction to avoid holding a database connection during file I/O.
+**Checks:** Java 25 formatting, compilation, test compilation, and packaging run locally. Multipart PostgreSQL tests cover quoted commas, valid create/update previews, owner/hash/version persistence, duplicate/reference/email/precision errors, absence of employee writes, 10,001 rows, and a payload over 10 MiB. GitHub Actions performs the final full-suite gate after publication.
+**Design choices:** Validation returns 200 for inspectable INVALID previews, while transport limits use 413/415. Invalid previews store errors and counts but no normalized employee rows. Bulk snapshots avoid N+1 queries across the 10,000-row bound. Separate apply semantics are intentionally not smuggled into validation.
+**Limits:** This commit does not apply previews, export CSV, clean expired rows, or guarantee idempotent application; those remain explicit follow-up work. Email syntax validation is intentionally practical rather than attempting full RFC mailbox validation.
+
 ## Ongoing practice
 
 For each implementation milestone, append the actual prompt/task, generated or revised areas, checks executed, failures found, and resulting corrections. Never mark AI-generated code correct solely because it compiles; verify the business invariants with focused tests.

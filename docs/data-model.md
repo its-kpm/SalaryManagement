@@ -1,6 +1,6 @@
 # Data model and invariants
 
-Status: initial PostgreSQL schema and executable constraints are implemented in Flyway V1, with Spring Session tables in V2. Synthetic seed data is available explicitly. Salary history, optimistic employee version claims, effective-dated changes, and synchronous audit appends are implemented.
+Status: initial PostgreSQL schema and executable constraints are implemented in Flyway V1, with Spring Session tables in V2. Synthetic seed data, salary transactions, reporting, and user-owned CSV validation previews are implemented. Import application remains future work.
 
 ## Entities
 
@@ -55,7 +55,7 @@ Use decimal arithmetic through conversion and aggregation. The implemented SQL r
 
 Audit payloads include only changed business fields; never passwords, tokens, or raw request bodies. The application exposes no audit update/delete operation. Retention is not legally defined by this assessment; production policy remains an explicit deployment prerequisite, not an invented compliance guarantee.
 
-Preview data is sensitive and accessible only to its initiating HR user. Enforce expiry on apply and delete expired unapplied previews through scheduled cleanup. After successful import, remove staged row payloads while retaining its hash, counts, actor, and receipt. A synchronous failed apply rolls back to VALIDATED, allowing correction through a new preview or retry after a transient failure.
+Preview data is sensitive and bound to its initiating HR user. Validation now stores a SHA-256 file hash, normalized valid rows, expected update versions, sorted errors, status, and a 24-hour expiry. Invalid previews retain no normalized employee rows. Validation never modifies employee/salary tables. Owner checks on apply, expiry cleanup, payload removal after apply, and atomic apply behavior remain the next milestone.
 
 ## Initial query support
 

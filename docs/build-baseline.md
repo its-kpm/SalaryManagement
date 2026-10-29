@@ -12,6 +12,7 @@
 | Maven | 3.9.16 through Apache Maven Wrapper 3.3.4 |
 | Spotless Maven plugin | 3.10.4; Google Java Format default supplied by this pinned plugin |
 | Maven Enforcer | 3.6.2 |
+| Apache Commons CSV | 1.14.1 stable; strict RFC 4180 import parsing |
 | CI JDK | Eclipse Temurin 25; patch updates remain enabled |
 | CI runner | ubuntu-24.04 |
 
@@ -24,6 +25,7 @@ Spring MVC, validation, Actuator, and test dependencies inherit the Spring Boot 
 - [Apache Maven downloads](https://maven.apache.org/download.cgi).
 - [Apache Maven Wrapper](https://maven.apache.org/tools/wrapper/): official only-script wrapper, no checked-in wrapper JAR.
 - [Spotless releases](https://github.com/diffplug/spotless/releases): Maven 3.10.4.
+- [Apache Commons CSV releases](https://commons.apache.org/proper/commons-csv/): 1.14.1 stable release; used instead of a handwritten CSV parser.
 
 ## Configuration and scope
 

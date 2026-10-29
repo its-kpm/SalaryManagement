@@ -1,4 +1,8 @@
 spring:
+  servlet:
+    multipart:
+      max-file-size: 11MB
+      max-request-size: 11MB
   application:
     name: salary-management
   profiles:
