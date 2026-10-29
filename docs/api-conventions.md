@@ -1,6 +1,6 @@
 # API conventions
 
-Status: authentication, employee and salary operations, compensation reporting, CSV validation/previews, session authorization, MVC error responses, request IDs, and API no-store headers are implemented. Import application and export remain proposed. Prefix business endpoints with /api/v1. JSON requests/responses use camelCase; all endpoints require HR access except login, CSRF-token retrieval, and minimal health.
+Status: authentication, employee/salary operations, compensation reporting, CSV validation/application/export, session authorization, MVC error responses, request IDs, and API no-store headers are implemented. Prefix business endpoints with /api/v1. JSON requests/responses use camelCase; all endpoints require HR access except login, CSRF-token retrieval, and minimal health.
 
 ## Planned routes
 
@@ -25,7 +25,11 @@ Employee creation and supported profile updates initially occur through CSV; ded
 
 `POST /api/v1/imports/validate` accepts one multipart `file` with a `.csv` name. The exact service limit is 10 MiB and 10,000 data rows; servlet multipart limits are slightly higher so the application can return its stable 413 code. Parsing uses strict UTF-8 and RFC 4180 quoting, including commas/newlines inside quoted fields. Validation checks required fields and lengths, email/date/status/amount formats, currency precision, reference data, existing email conflicts, existing salary dates, and duplicate employee numbers/emails within the file.
 
-Every request persists a 24-hour preview owned by the authenticated HR user and bound to the complete file's SHA-256 hash. A valid preview stores normalized rows, generated IDs for creates, and expected employee versions for updates. An invalid preview stores sorted row/field/code/message errors but no staged rows. Both return 200 with `VALIDATED` or `INVALID`; neither changes employee or salary records. Atomic apply remains a separate later command.
+Every validation request persists a 24-hour preview owned by the authenticated HR user and bound to the complete file's SHA-256 hash. A valid preview stores normalized rows, generated IDs for creates, and expected employee versions for updates. An invalid preview stores sorted row/field/code/message errors but no staged rows. Both return 200 with `VALIDATED` or `INVALID`; neither changes employee or salary records.
+
+`POST /api/v1/imports/{id}/apply` locks the owner-bound preview, hides another user's ID with 404, checks status/expiry, then claims all existing employee versions in stable UUID order. Employee/profile writes, effective-dated salary changes, audit events linked by import ID, and the APPLIED receipt commit in one transaction. Stale versions, salary dates, reference rows, or uniqueness conflicts return 409 and roll back the entire batch. A repeated successful apply returns the stored receipt without duplicate writes. Applied previews drop their staged row array while retaining metadata and receipt.
+
+`GET /api/v1/employees/export` accepts the directory's q, departmentId, countryCode, jobLevel, and employmentStatus filters and exports at most 10,000 matching rows using the same 12-column RFC 4180 template. It returns UTF-8 `text/csv` with an attachment filename. Text cells whose first meaningful character is `=`, `+`, `-`, or `@` receive a leading apostrophe, including when whitespace/control characters precede the dangerous prefix.
 
 ## Pagination and filters
 
@@ -77,7 +81,7 @@ An inspectable CSV validation result can return 200 with status INVALID and row 
 
 The platform module handles MVC input/validation errors, missing routes, unsupported methods/media types, and unexpected controller failures. Responses use `about:blank`, the standard HTTP title, status, safe detail, request path without query parameters, code, and requestId. `X-Request-ID` carries the same server-generated UUID; incoming IDs are not trusted. Field errors use field, code=INVALID_VALUE, and a generic message, avoiding validator-message interpolation of submitted values.
 
-Current codes include the shared validation/security codes, employee/salary conflict codes, reporting codes, IMPORT_FILE_TOO_LARGE, UNSUPPORTED_IMPORT_FILE, and IMPORT_READ_FAILED. Inspectable CSV row errors use stable codes inside the preview rather than failing the HTTP request. HTTP 405 responses retain Allow. Unexpected failures log only the correlation ID and exception type, not the exception message or stack trace; this trades diagnostic detail for protection against sensitive values in exceptions.
+Current codes include the shared validation/security codes, employee/salary/reporting codes, import transport codes, IMPORT_NOT_FOUND, IMPORT_NOT_APPLICABLE, IMPORT_EXPIRED, IMPORT_STALE, INVALID_EXPORT_FILTER, and EXPORT_TOO_LARGE. Inspectable CSV row errors use stable codes inside the preview rather than failing the HTTP request. HTTP 405 responses retain Allow. Unexpected failures log only correlation ID and exception type, not exception messages or stack traces containing sensitive values.
 
 Domain errors preserve stable codes while the shared advice replaces details with status-level safe messages, preventing submitted compensation values from appearing in error responses. Advice handles MVC exceptions, not arbitrary servlet-container or security-filter failures. Error responses and `/api/` responses have no-store headers. MDC request context is cleaned up even when downstream processing fails.
 

@@ -25,15 +25,30 @@ public class AuditTrail {
       Map<String, ?> afterValues,
       String reason,
       UUID requestId) {
+    return append(
+        actorId, entityType, entityId, action, beforeValues, afterValues, reason, requestId, null);
+  }
+
+  public UUID append(
+      UUID actorId,
+      String entityType,
+      UUID entityId,
+      String action,
+      Map<String, ?> beforeValues,
+      Map<String, ?> afterValues,
+      String reason,
+      UUID requestId,
+      UUID importId) {
     var id = UUID.randomUUID();
     jdbc.sql(
             """
             INSERT INTO audit_events(
                 id, actor_id, entity_type, entity_id, action,
-                before_values, after_values, reason, request_id)
+                before_values, after_values, reason, request_id, import_id)
             VALUES (
                 :id, :actorId, :entityType, :entityId, :action,
-                CAST(:beforeValues AS jsonb), CAST(:afterValues AS jsonb), :reason, :requestId)
+                CAST(:beforeValues AS jsonb), CAST(:afterValues AS jsonb), :reason, :requestId,
+                :importId)
             """)
         .param("id", id)
         .param("actorId", actorId)
@@ -44,6 +59,7 @@ public class AuditTrail {
         .param("afterValues", json(afterValues))
         .param("reason", reason)
         .param("requestId", requestId)
+        .param("importId", importId)
         .update();
     return id;
   }

@@ -1,6 +1,6 @@
 # Backend architecture
 
-Status: module boundaries, shared MVC infrastructure, PostgreSQL persistence, authentication, employee/salary operations, compensation reporting, and CSV validation previews are implemented. Import application/export below remain the design baseline. Product scope is defined in [requirements](requirements.md); decisions and alternatives are in [decisions](decisions.md).
+Status: module boundaries, shared MVC infrastructure, PostgreSQL persistence, authentication, employee/salary operations, reporting, and CSV preview/application/export are implemented. Operational hardening and frontend/deployment remain. Product scope is defined in [requirements](requirements.md); decisions and alternatives are in [decisions](decisions.md).
 
 ## Runtime topology
 

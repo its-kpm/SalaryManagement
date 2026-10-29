@@ -86,6 +86,14 @@ This log records actual assistance and checks, not hypothetical future testing. 
 **Design choices:** Validation returns 200 for inspectable INVALID previews, while transport limits use 413/415. Invalid previews store errors and counts but no normalized employee rows. Bulk snapshots avoid N+1 queries across the 10,000-row bound. Separate apply semantics are intentionally not smuggled into validation.
 **Limits:** This commit does not apply previews, export CSV, clean expired rows, or guarantee idempotent application; those remain explicit follow-up work. Email syntax validation is intentionally practical rather than attempting full RFC mailbox validation.
 
+## Commit 12 — Apply validated imports and export salary data
+
+**Instruction:** Add transactional import application, stale-data revalidation, duplicate-apply protection, filtered CSV export, and tests for all-or-nothing writes, safe retries, authorization, and formula safety.
+**AI contribution:** Implemented an owner-bound preview lock, status/expiry checks, stable-order optimistic version claims, modular employee/compensation write contracts, transactional profile/salary/audit changes, import-linked audit records, stored idempotent receipts, staged-payload removal, and filtered RFC 4180 export. Export neutralizes spreadsheet formulas even after leading whitespace/control characters.
+**Checks:** Java 25 formatting, compilation, test compilation, packaging, and Modulith verification run locally. PostgreSQL HTTP tests cover a mixed create/update batch, version and salary results, audit linkage, identical retry receipts, cross-user 404, stale-preview all-or-nothing behavior, authentication, filtering, attachment headers, RFC parsing, and dangerous formula prefixes. The full suite runs in CI after publication.
+**Design choices:** Existing employee versions are claimed in stable UUID order before row writes, reducing deadlock risk and detecting stale previews early. The database transaction remains the atomicity boundary; no Kafka is introduced for mandatory audit. Apply consumes only stored normalized rows, never replacement client data.
+**Limits:** Export is capped at the stated 10,000-employee scope and generated synchronously. Expired-preview cleanup, administrative audit browsing, performance evidence, and external payroll integration remain future work.
+
 ## Ongoing practice
 
 For each implementation milestone, append the actual prompt/task, generated or revised areas, checks executed, failures found, and resulting corrections. Never mark AI-generated code correct solely because it compiles; verify the business invariants with focused tests.

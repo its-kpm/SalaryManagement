@@ -49,7 +49,7 @@ class ImportPreviewWriter {
     var employeeData = employees.snapshot();
     var errors = new LinkedHashSet<>(parsed.errors());
     detectFileDuplicates(parsed.rows(), errors);
-    var normalized = new ArrayList<NormalizedRow>();
+    var normalized = new ArrayList<NormalizedImportRow>();
     var expectedVersions = new LinkedHashMap<String, Long>();
     for (var row : parsed.rows()) {
       var value = validate(row, referenceData, employeeData, errors);
@@ -69,7 +69,7 @@ class ImportPreviewWriter {
                     .thenComparing(CsvImportParser.ImportError::code))
             .toList();
     var valid = sortedErrors.isEmpty();
-    var rowsToStore = valid ? List.copyOf(normalized) : List.<NormalizedRow>of();
+    var rowsToStore = valid ? List.copyOf(normalized) : List.<NormalizedImportRow>of();
     var createCount =
         valid ? normalized.stream().filter(row -> row.action().equals("CREATE")).count() : 0;
     var updateCount = valid ? normalized.size() - createCount : 0;
@@ -81,7 +81,7 @@ class ImportPreviewWriter {
         ownerId,
         parsed.contentHash(),
         JSON.writeValueAsString(
-            new StoredPreview(parsed.rowCount(), createCount, updateCount, rowsToStore)),
+            new StoredImportPreview(parsed.rowCount(), createCount, updateCount, rowsToStore)),
         JSON.writeValueAsString(valid ? expectedVersions : Map.of()),
         status,
         JSON.writeValueAsString(sortedErrors),
@@ -97,7 +97,7 @@ class ImportPreviewWriter {
         sortedErrors);
   }
 
-  private NormalizedRow validate(
+  private NormalizedImportRow validate(
       CsvImportParser.RawRow row,
       ImportReferenceData.Snapshot references,
       EmployeeImportCatalog.Snapshot employees,
@@ -190,7 +190,7 @@ class ImportPreviewWriter {
 
     var employeeId = existing == null ? UUID.randomUUID() : existing.id();
     var expectedVersion = existing == null ? null : existing.version();
-    return new NormalizedRow(
+    return new NormalizedImportRow(
         row.rowNumber(),
         existing == null ? "CREATE" : "UPDATE",
         employeeId.toString(),
@@ -269,26 +269,4 @@ class ImportPreviewWriter {
       long updateCount,
       OffsetDateTime expiresAt,
       List<CsvImportParser.ImportError> errors) {}
-
-  private record StoredPreview(
-      int rowCount, long createCount, long updateCount, List<NormalizedRow> rows) {}
-
-  private record NormalizedRow(
-      int sourceRow,
-      String action,
-      String employeeId,
-      String employeeNumber,
-      String fullName,
-      String email,
-      String departmentId,
-      String department,
-      String countryCode,
-      String jobTitle,
-      String jobLevel,
-      String employmentStatus,
-      String annualBaseAmount,
-      String currencyCode,
-      String effectiveFrom,
-      String reason,
-      Long expectedVersion) {}
 }
