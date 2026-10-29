@@ -115,7 +115,7 @@ class ImportApplicationExportIntegrationTests {
           .isEqualTo(2);
       assertThat(
               jdbc.queryForObject(
-                  "SELECT NOT (normalized_preview ? 'rows') FROM imports WHERE id = ?",
+                  "SELECT NOT jsonb_exists(normalized_preview, 'rows') FROM imports WHERE id = ?",
                   Boolean.class,
                   previewId))
           .isTrue();
