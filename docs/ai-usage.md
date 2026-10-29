@@ -31,6 +31,12 @@ This log records actual assistance and checks, not hypothetical future testing. 
 **AI contribution:** Added the Modulith BOM/API/test-core dependencies; seven business boundary declarations and a technical platform module; request correlation and safe Problem Details handling; positive/negative architecture checks, real-HTTP error tests, and MDC cleanup tests. Updated the implemented-versus-planned documentation.
 **Checks:** Clean Java 25 verification passed all 18 tests, including intentionally invalid fixture rejection. Formatting and packaging pass. Reviewed documentation, module ownership, safe-message behavior, and absence of test fixtures in the executable artifact; remote CI is checked after publication.
 **Failures and corrections:** The initial filter name collided with Spring's requestContextFilter bean; renamed it RequestCorrelationFilter without enabling bean overrides. Modulith excludes test classes by default, so isolated negative fixture scans explicitly include their test classpath while production scans keep the default. Maven Central exposed stable 2.1.2 beyond the reference site's 2.1.1 label; pinned and built 2.1.2. No business contracts or fake service implementations were invented to fill empty modules.
+
+### Operational observability
+
+AI was used to compare the existing correlation/error infrastructure with Spring Boot's native health, Micrometer, Prometheus, and structured-logging capabilities. Official Spring Boot documentation was used to confirm probe groups, Logstash JSON configuration, MDC/key-value inclusion, and HikariCP metric naming. The result intentionally uses framework-native facilities instead of introducing a separate logging or telemetry SDK.
+
+Human decisions retained: database availability belongs in readiness but not liveness; Prometheus is authenticated until deployment provides an isolated management boundary; request logs omit query strings, headers, principals, bodies, and exception messages; and metrics describe HTTP behavior and database-pool utilization without recording compensation values. Tests inspect structured event fields and deliberately distinctive salary/reason values to detect leakage.
 **Limits:** MVC error handling is not a substitute for future Spring Security exception handlers. Database integrity and business-rule tests remain for later commits. Logging only exception type and request ID intentionally limits diagnostic detail to avoid leaking exception contents.
 
 ## Commit 5 — PostgreSQL schema and migration

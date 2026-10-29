@@ -30,6 +30,25 @@ class SalaryManagementApplicationTests {
   }
 
   @Test
+  void livenessAndReadinessArePublicAndMinimal() throws Exception {
+    for (var path : new String[] {"/actuator/health/liveness", "/actuator/health/readiness"}) {
+      var response = get(path);
+      assertThat(response.statusCode()).isEqualTo(200);
+      var health = JsonMapper.builder().build().readTree(response.body());
+      assertThat(health.get("status").asString()).isEqualTo("UP");
+      assertThat(health.has("components")).isFalse();
+      assertThat(health.has("details")).isFalse();
+    }
+  }
+
+  @Test
+  void prometheusIsProtectedWithoutLeakingMetrics() throws Exception {
+    var response = get("/actuator/prometheus");
+    assertThat(response.statusCode()).isEqualTo(401);
+    assertThat(response.body()).doesNotContain("http_server_requests", "hikaricp_connections");
+  }
+
+  @Test
   void environmentEndpointIsNotExposed() throws Exception {
     assertThat(get("/actuator/env").statusCode()).isEqualTo(401);
   }

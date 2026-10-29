@@ -55,12 +55,10 @@ class ApiExceptionHandler extends ResponseEntityExceptionHandler {
 
   @ExceptionHandler(Exception.class)
   ResponseEntity<Object> unexpected(Exception exception, WebRequest request) {
-    var servletRequest = ((ServletWebRequest) request).getRequest();
     // Exception messages and stack traces can contain SQL, credentials, or salary values.
-    LOG.error(
-        "Unhandled request failure requestId={} exceptionType={}",
-        servletRequest.getAttribute(RequestCorrelationFilter.ATTRIBUTE),
-        exception.getClass().getName());
+    LOG.atError()
+        .addKeyValue("exception.type", exception.getClass().getName())
+        .log("Unhandled request failure");
     return handleExceptionInternal(
         exception, null, HttpHeaders.EMPTY, HttpStatus.INTERNAL_SERVER_ERROR, request);
   }

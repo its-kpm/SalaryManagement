@@ -119,6 +119,40 @@ class HrAuthenticationIntegrationTests {
     }
   }
 
+  @Test
+  void authenticatedHrCanScrapeRequestAndDatabasePoolMetrics() throws Exception {
+    var cookies = new CookieManager(null, CookiePolicy.ACCEPT_ALL);
+    try (var client =
+        HttpClient.newBuilder()
+            .cookieHandler(cookies)
+            .connectTimeout(Duration.ofSeconds(5))
+            .build()) {
+      var csrf = JSON.readTree(send(client, "GET", "/api/v1/auth/csrf", null, null).body());
+      var login =
+          send(
+              client,
+              "POST",
+              "/api/v1/auth/login",
+              login("manager@example.test", "correct-password-1234"),
+              csrf.get("headerName").asString() + ":" + csrf.get("token").asString());
+      assertThat(login.statusCode()).isEqualTo(200);
+
+      var request =
+          HttpRequest.newBuilder(URI.create("http://127.0.0.1:" + port + "/actuator/prometheus"))
+              .timeout(Duration.ofSeconds(5))
+              .header("Accept", "text/plain")
+              .GET()
+              .build();
+      var metrics = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+      assertThat(metrics.statusCode()).isEqualTo(200);
+      assertThat(metrics.body())
+          .contains("http_server_requests")
+          .contains("hikaricp_connections")
+          .contains("application=\"salary-management\"");
+    }
+  }
+
   private static String login(String email, String password) {
     return "{\"email\":\"" + email + "\",\"password\":\"" + password + "\"}";
   }

@@ -19,7 +19,7 @@ Spring Boot backend, PostgreSQL, and an Angular frontend (modern Angular is prop
 
 Use compatible, supported stable dependencies. Exact versions, build commands, and deployment instructions will be recorded when implemented.
 
-Next milestone: operational health, metrics, and structured safe logging. Later commits add performance evidence, frontend, deployment, and demo artifacts.
+Operational health, metrics, and structured safe logging are implemented. Later commits add performance evidence, frontend, deployment, and demo artifacts.
 
 ## Run the backend
 
@@ -35,9 +35,13 @@ On Windows use `mvnw.cmd` in place of `./mvnw`. Set `POSTGRES_PASSWORD` and `DAT
 
 ```bash
 curl http://127.0.0.1:8080/actuator/health
+curl http://127.0.0.1:8080/actuator/health/liveness
+curl http://127.0.0.1:8080/actuator/health/readiness
 ```
 
-Expected response includes `"status":"UP"`; Spring Boot may also list health probe groups. Component details are omitted. This checks application and database health after Flyway has migrated the schema. Other Actuator endpoints are not exposed. Do not expose the bootstrap as a production HR service before the authentication milestone.
+Expected responses include `"status":"UP"` with component details omitted. Liveness reports only application availability; readiness also checks database availability. `/actuator/prometheus` exposes HTTP request and HikariCP database-pool metrics only to an authenticated HR session. Other Actuator endpoints are not exposed.
+
+Console logs use Spring Boot's Logstash JSON format. Each request completion includes the server-generated `requestId`, method, path (without query string), status, and duration. Request/response bodies, credentials, query parameters, salary values, and exception messages are deliberately excluded.
 
 To run the packaged application after verification:
 

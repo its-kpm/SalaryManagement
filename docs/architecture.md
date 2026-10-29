@@ -1,6 +1,6 @@
 # Backend architecture
 
-Status: module boundaries, shared MVC infrastructure, PostgreSQL persistence, authentication, employee/salary operations, reporting, and CSV preview/application/export are implemented. Operational hardening and frontend/deployment remain. Product scope is defined in [requirements](requirements.md); decisions and alternatives are in [decisions](decisions.md).
+Status: module boundaries, shared MVC infrastructure, PostgreSQL persistence, authentication, employee/salary operations, reporting, CSV preview/application/export, and operational observability are implemented. Frontend/deployment remain. Product scope is defined in [requirements](requirements.md); decisions and alternatives are in [decisions](decisions.md).
 
 ## Runtime topology
 
@@ -73,7 +73,11 @@ Use Spring Security, adaptive password hashing, session fixation protection, sec
 
 Authorize all business APIs as HR. Expose only minimal public health information; restrict detailed metrics. Disable request/response body logging for compensation and import endpoints. Operational logs contain correlation IDs, timings, and safe error codes; business audits are sensitive database records.
 
-Flyway owns schema changes; runtime schema generation is disabled. Separate migration and runtime database privileges where hosting permits. Use Actuator/Micrometer and structured logs, without claiming monitoring infrastructure is already deployed.
+Flyway owns schema changes; runtime schema generation is disabled. Separate migration and runtime database privileges where hosting permits.
+
+Actuator exposes public, detail-free liveness and readiness probes. Readiness includes PostgreSQL; liveness deliberately does not depend on external systems, avoiding restart loops during a database outage. The Prometheus endpoint is exposed but requires an HR-authenticated session until deployment supplies a separate management-network security boundary. Micrometer records HTTP latency/counts and HikariCP database-pool utilization.
+
+Spring Boot emits Logstash-format JSON. A server-generated request ID is carried through MDC and request-completion events add structured method, path, status, and duration fields. Logs never inspect query strings, headers, principals, request/response bodies, salary values, or exception messages. Business audit records remain in PostgreSQL and are not operational logs. Monitoring infrastructure itself is not yet deployed.
 
 ## Verification and performance
 
