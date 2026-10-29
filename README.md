@@ -2,7 +2,7 @@
 
 Salary management for ACME's HR team and 10,000 employees across countries.
 
-**Status:** The secured Spring Boot API now supports an authenticated HR session plus a database-backed employee directory and profiles over the PostgreSQL schema and reproducible 10,000-employee demo seed. The frontend, salary-change commands, reporting, imports, and deployment are not implemented yet; this is not a deployed HR application.
+**Status:** The secured Spring Boot API now supports authenticated employee reads, effective-dated salary history, and transactional salary changes with optimistic locking and synchronous audits over PostgreSQL. The frontend, reporting, imports, and deployment are not implemented yet; this is not a deployed HR application.
 
 ## Design documents
 
@@ -19,7 +19,7 @@ Spring Boot backend, PostgreSQL, and an Angular frontend (modern Angular is prop
 
 Use compatible, supported stable dependencies. Exact versions, build commands, and deployment instructions will be recorded when implemented.
 
-Next milestone: transactional, effective-dated salary changes and salary history. Later commits add reporting, CSV transfer, observability, performance checks, frontend, and deployment.
+Next milestone: compensation reporting with explicit currency conversion semantics. Later commits add CSV transfer, observability, performance checks, frontend, and deployment.
 
 ## Run the backend
 
@@ -57,7 +57,7 @@ Spring Modulith declares seven business modules plus a technical `platform` modu
 
 MVC errors return RFC 9457 Problem Details with safe messages and a server-generated `requestId` matching `X-Request-ID`. API responses use `Cache-Control: no-store`. Validation errors identify fields without returning rejected salary values. Business-specific errors and security-filter errors arrive with their respective features.
 
-The suite includes module-boundary, HTTP contract, security-session, PostgreSQL integrity, deterministic seed, and employee-directory integration tests. Test-only HTTP endpoints are outside the application scan and are not shipped.
+The suite includes module-boundary, HTTP contract, security-session, PostgreSQL integrity, deterministic seed, employee-directory, and transactional salary-change integration tests. Test-only HTTP endpoints are outside the application scan and are not shipped.
 
 ## Database schema
 

@@ -1,6 +1,6 @@
 # Backend architecture
 
-Status: module boundaries and shared MVC infrastructure are implemented; business workflows, database, and authentication below remain the design baseline. Product scope is defined in [requirements](requirements.md); decisions and alternatives are in [decisions](decisions.md).
+Status: module boundaries, shared MVC infrastructure, PostgreSQL persistence, authentication, employee reads, and the salary-change transaction are implemented. Reporting and transfer workflows below remain the design baseline. Product scope is defined in [requirements](requirements.md); decisions and alternatives are in [decisions](decisions.md).
 
 ## Runtime topology
 

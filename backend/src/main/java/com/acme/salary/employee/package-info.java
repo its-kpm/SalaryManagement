@@ -1,3 +1,3 @@
-/** Employee module boundary; business functionality arrives in later commits. */
+/** Employee directory, profile, and aggregate-version ownership module. */
 @org.springframework.modulith.ApplicationModule(allowedDependencies = {"reference", "audit"})
 package com.acme.salary.employee;

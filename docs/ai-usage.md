@@ -62,6 +62,14 @@ This log records actual assistance and checks, not hypothetical future testing. 
 **Design choices:** A focused read repository is used instead of loading 10,000 employees into memory. Dynamic SQL is limited to an internal sort-column allowlist and validated direction; all user values remain bound parameters. Employee ID is a deterministic tie-breaker. No distributed cache or search cluster is introduced because indexed relational reads are adequate for the stated scale and simpler to operate correctly.
 **Limits:** This milestone is read-only. Salary history and mutations, dedicated employee edits, reporting aggregates, CSV transfer, and performance/load evidence remain later work.
 
+## Commit 9 — Transactional salary changes and audit history
+
+**Instruction:** Implement `feat: implement transactional salary changes and audit history`, including decimal/effective-date rules, optimistic locking, history, synchronous audit events, and tests for success, rollback, overlaps, stale writes, and history.
+**AI contribution:** Added narrow public module contracts for employee version claims, currency precision, and append-only audit writes; implemented salary history and a transactional salary-change use case; derived the actor from the authenticated principal and audit request ID from correlation context; preserved safe domain error codes; and added full-HTTP PostgreSQL integration tests with a fixed UTC clock.
+**Checks:** Java 25 formatting, compilation, test compilation, and executable packaging run locally. GitHub Actions performs the authoritative full suite with PostgreSQL 18.6 after publication. Tests cover successful period closure/insertion/audit, newest-first pagination, currency precision, future and overlapping dates, missing employees, stale versions, and forced audit failure rollback.
+**Design choices:** PostgreSQL row locking plus an employee-version compare-and-swap serializes cooperating writes. Salary and audit records remain in one local transaction because audit is mandatory; Kafka would weaken atomicity without an outbox and adds no value for this use case. Database temporal constraints remain defense in depth. A fixed injectable `Clock` keeps business-date tests deterministic.
+**Limits:** Same-day corrections and editing old periods remain deliberately excluded. The API supports salary commands, not employee profile writes. Reporting, imports, audit browsing/retention policy, and performance evidence remain later milestones.
+
 ## Ongoing practice
 
 For each implementation milestone, append the actual prompt/task, generated or revised areas, checks executed, failures found, and resulting corrections. Never mark AI-generated code correct solely because it compiles; verify the business invariants with focused tests.

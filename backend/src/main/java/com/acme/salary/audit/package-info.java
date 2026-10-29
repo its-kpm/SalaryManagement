@@ -1,3 +1,3 @@
-/** Audit module boundary; business functionality arrives in later commits. */
+/** Append-only synchronous business audit module. */
 @org.springframework.modulith.ApplicationModule(allowedDependencies = {})
 package com.acme.salary.audit;

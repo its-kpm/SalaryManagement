@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -29,6 +30,11 @@ class ApiExceptionHandler extends ResponseEntityExceptionHandler {
       HttpStatusCode status,
       WebRequest request) {
     var problem = problem(status, request);
+    if (exception instanceof ErrorResponse error
+        && error.getBody().getProperties() != null
+        && error.getBody().getProperties().get("code") instanceof String code) {
+      problem.setProperty("code", code);
+    }
     if (exception instanceof MethodArgumentNotValidException validation) {
       problem.setProperty("code", "VALIDATION_FAILED");
       var fields =
@@ -64,6 +70,8 @@ class ApiExceptionHandler extends ResponseEntityExceptionHandler {
         switch (status.value()) {
           case 400 -> new Definition("INVALID_REQUEST", "The request is invalid.");
           case 404 -> new Definition("RESOURCE_NOT_FOUND", "The requested resource was not found.");
+          case 409 ->
+              new Definition("CONFLICT", "The request conflicts with the current resource state.");
           case 405 -> new Definition("METHOD_NOT_ALLOWED", "The HTTP method is not supported.");
           case 406 ->
               new Definition("NOT_ACCEPTABLE", "The requested response format is not supported.");

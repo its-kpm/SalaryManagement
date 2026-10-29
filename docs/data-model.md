@@ -1,6 +1,6 @@
 # Data model and invariants
 
-Status: initial PostgreSQL schema and executable constraints implemented in Flyway V1. Synthetic seed data is available as an explicit script. Domain use cases remain future work; Spring Session tables are installed by Flyway V2.
+Status: initial PostgreSQL schema and executable constraints are implemented in Flyway V1, with Spring Session tables in V2. Synthetic seed data is available explicitly. Salary history, optimistic employee version claims, effective-dated changes, and synchronous audit appends are implemented.
 
 ## Entities
 
@@ -63,7 +63,7 @@ Unique keys support employee-number/email lookups. Index salary employee/date ac
 
 ## Migration implementation notes
 
-V1 creates all application tables and a read-only current compensation view. The view evaluates today's date in UTC. Database CHECK, UNIQUE, FK, partial unique, and GiST exclusion constraints protect important record-level rules. A future salary-change use case will enforce the employee aggregate version and atomically write audit entries; these cross-table invariants are not implemented by V1 alone. Currency-specific input precision and historical rate immutability also remain application responsibilities.
+V1 creates all application tables and a read-only current compensation view. The view evaluates today's date in UTC. Database CHECK, UNIQUE, FK, partial unique, and GiST exclusion constraints protect important record-level rules. The salary-change use case now conditionally claims the employee aggregate version, validates currency precision and effective dates, replaces the open period, and writes its audit event in one transaction. Tests force an audit failure and verify that version and salary writes roll back. Historical rate immutability remains a later application responsibility.
 
 ## Synthetic seed
 
