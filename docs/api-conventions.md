@@ -1,6 +1,6 @@
 # API conventions
 
-Status: authentication, employee directory/profile reads, salary history/changes, session authorization, MVC error responses, request IDs, and API no-store headers are implemented. Reporting/import endpoints below remain proposed. Prefix business endpoints with /api/v1. JSON requests/responses use camelCase; all endpoints require HR access except login, CSRF-token retrieval, and minimal health.
+Status: authentication, employee directory/profile reads, salary history/changes, compensation reporting, session authorization, MVC error responses, request IDs, and API no-store headers are implemented. Import endpoints below remain proposed. Prefix business endpoints with /api/v1. JSON requests/responses use camelCase; all endpoints require HR access except login, CSRF-token retrieval, and minimal health.
 
 ## Planned routes
 
@@ -29,7 +29,9 @@ Directory parameters: q, departmentId, countryCode, jobLevel, employmentStatus, 
 
 The implemented directory searches `fullName`, `employeeNumber`, and `email` case-insensitively, treating `%`, `_`, and `\` as literal user input rather than SQL wildcard syntax. Supported sort values are `fullName`, `employeeNumber`, `department`, `country`, `jobLevel`, and `currentSalary`; direction is `asc` or `desc`. Current salary may be null. Monetary amounts are serialized as decimal strings to preserve precision in JavaScript clients. Profile lookup returns 404 for an unknown UUID and includes the employee version for future optimistic writes.
 
-Reports accept departmentId, countryCode, jobLevel and rateSetId; they always describe active employees. An omitted rateSetId resolves to one configured default, returned explicitly in the response. Include asOfDate and reportingCurrency. Execute related aggregates in one consistent database snapshot so totals and counts agree during concurrent writes. No historical-report endpoint is implied.
+Reports accept departmentId, countryCode, jobLevel and rateSetId; they always describe active employees. An omitted rateSetId resolves deterministically to the latest dated set (then lowest UUID), returned explicitly in the response. Responses include its ID, label, asOfDate, and reportingCurrency. Summary returns employee count, total, average, and exact median. Compensation breakdown requires groupBy=`department`, `country`, or `jobLevel` and returns the same metrics per stable key/label. Both execute in a repeatable-read snapshot so totals and counts agree during concurrent writes. No historical-report endpoint is implied.
+
+Conversion multiplies each current local salary by its rate. SQL `NUMERIC` arithmetic and rank-based middle selection avoid floating-point median conversion. Display values round once with HALF_EVEN to the reporting currency's minor units. Empty results return count zero, total zero, and null average/median. If any matching active employee lacks a current salary or rate, the entire response is 422 `REPORT_INCOMPLETE`; values are never silently omitted.
 
 ## Salary command
 
@@ -71,7 +73,7 @@ An inspectable CSV validation result can return 200 with status INVALID and row 
 
 The platform module handles MVC input/validation errors, missing routes, unsupported methods/media types, and unexpected controller failures. Responses use `about:blank`, the standard HTTP title, status, safe detail, request path without query parameters, code, and requestId. `X-Request-ID` carries the same server-generated UUID; incoming IDs are not trusted. Field errors use field, code=INVALID_VALUE, and a generic message, avoiding validator-message interpolation of submitted values.
 
-Current codes include VALIDATION_FAILED, INVALID_REQUEST, RESOURCE_NOT_FOUND, METHOD_NOT_ALLOWED, NOT_ACCEPTABLE, PAYLOAD_TOO_LARGE, UNSUPPORTED_MEDIA_TYPE, INTERNAL_ERROR, EMPLOYEE_NOT_FOUND, STALE_EMPLOYEE_VERSION, SALARY_EFFECTIVE_DATE_CONFLICT, SALARY_HISTORY_MISSING, INVALID_SALARY_AMOUNT, INVALID_AMOUNT_PRECISION, INVALID_EFFECTIVE_DATE, and UNSUPPORTED_CURRENCY; other framework statuses receive REQUEST_FAILED. HTTP 405 responses retain Allow. Unexpected failures log only the correlation ID and exception type, not the exception message or stack trace; this trades diagnostic detail for protection against sensitive values in exceptions.
+Current codes include VALIDATION_FAILED, INVALID_REQUEST, RESOURCE_NOT_FOUND, METHOD_NOT_ALLOWED, NOT_ACCEPTABLE, PAYLOAD_TOO_LARGE, UNSUPPORTED_MEDIA_TYPE, INTERNAL_ERROR, employee/salary conflict codes, RATE_SET_NOT_FOUND, INVALID_REPORT_FILTER, INVALID_REPORT_GROUPING, and REPORT_INCOMPLETE; other framework statuses receive REQUEST_FAILED. HTTP 405 responses retain Allow. Unexpected failures log only the correlation ID and exception type, not the exception message or stack trace; this trades diagnostic detail for protection against sensitive values in exceptions.
 
 Salary domain errors preserve stable codes while the shared advice replaces details with status-level safe messages, preventing submitted compensation values from appearing in error responses. Reporting errors remain future work. Advice handles MVC exceptions, not arbitrary servlet-container or security-filter failures. Error responses and `/api/` responses have no-store headers. MDC request context is cleaned up even when downstream processing fails.
 

@@ -1,4 +1,4 @@
-/** Reporting module boundary; business functionality arrives in later commits. */
+/** Currency-normalized compensation summary and breakdown reporting module. */
 @org.springframework.modulith.ApplicationModule(
     allowedDependencies = {"employee", "compensation", "reference"})
 package com.acme.salary.reporting;

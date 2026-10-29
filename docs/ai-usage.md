@@ -70,6 +70,14 @@ This log records actual assistance and checks, not hypothetical future testing. 
 **Design choices:** PostgreSQL row locking plus an employee-version compare-and-swap serializes cooperating writes. Salary and audit records remain in one local transaction because audit is mandatory; Kafka would weaken atomicity without an outbox and adds no value for this use case. Database temporal constraints remain defense in depth. A fixed injectable `Clock` keeps business-date tests deterministic.
 **Limits:** Same-day corrections and editing old periods remain deliberately excluded. The API supports salary commands, not employee profile writes. Reporting, imports, audit browsing/retention policy, and performance evidence remain later milestones.
 
+## Commit 10 — Currency-normalized compensation reports
+
+**Instruction:** Add summary totals, mean, median, department/country/level breakdowns, explicit rate-set metadata, and tests proving calculations, filters, rounding, and missing-rate behavior.
+**AI contribution:** Implemented authenticated summary and grouped compensation endpoints, deterministic rate-set resolution, reusable filters, completeness validation, exact numeric conversion/aggregation, rank-based medians, HALF_EVEN response rounding, and explicit rate-set metadata. Added a small known PostgreSQL dataset covering cross-currency totals, odd/even medians, filters, empty results, stable department keys, inactive exclusion, invalid grouping, and missing rates.
+**Checks:** Java 25 formatting, compilation, test compilation, and executable packaging run locally. The full PostgreSQL 18.6 suite runs in GitHub Actions after publication and is corrected before the milestone is closed.
+**Design choices:** Reporting runs in a repeatable-read read-only transaction. It refuses partial results when salary or FX data is absent. SQL `NUMERIC` values remain exact through conversion and middle-value median calculation; rounding occurs only at the API boundary according to the reporting currency.
+**Limits:** Rates are curated reference data, not live market FX. Reports cover current active compensation, not historical organization structure or pay-equity causality. Performance evidence on the 10,000-row seed remains a later milestone.
+
 ## Ongoing practice
 
 For each implementation milestone, append the actual prompt/task, generated or revised areas, checks executed, failures found, and resulting corrections. Never mark AI-generated code correct solely because it compiles; verify the business invariants with focused tests.

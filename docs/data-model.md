@@ -47,9 +47,9 @@ Employee profile changes and salary changes share employees.version. A condition
 
 Use BigDecimal; serialize monetary values as decimal strings. Reject excess input precision for the currency rather than silently rounding salary input. NUMERIC(19,4) is storage capacity, not permission to accept four decimal places for every currency.
 
-Report only active employees with current salaries. Convert using local amount multiplied by the specified rate to the rate set's reporting currency. Include a rate of 1 for that currency. Missing rates or missing current salary records cause an explicit incomplete-report error.
+Report only active employees with current salaries. Convert using local amount multiplied by the specified rate to the rate set's reporting currency. Include a rate of 1 for that currency. Missing rates or missing current salary records cause an explicit incomplete-report error. These completeness checks and metadata are implemented in a repeatable-read report transaction.
 
-Use decimal arithmetic through conversion and aggregation. Compute median from ordered decimal values (average the middle two for even counts), without a floating-point percentile conversion. Round only displayed monetary results to reporting-currency precision using HALF_EVEN. Return null mean/median and zero count/total for an empty selection. Reports describe current department/country/level assignments; historical organizational reporting is excluded.
+Use decimal arithmetic through conversion and aggregation. The implemented SQL ranks exact converted `NUMERIC` values and averages the middle one or two, without a floating-point percentile conversion. Only displayed results round to reporting-currency precision using HALF_EVEN. Empty selections return null mean/median and zero count/total. Reports describe current department/country/level assignments; historical organizational reporting is excluded.
 
 ## Audit, import, and retention
 
